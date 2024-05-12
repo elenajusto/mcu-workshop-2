@@ -18,7 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "infrared_pd.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #define IPD_STR_LENG 35
@@ -42,6 +42,8 @@
 /* Private variables ---------------------------------------------------------*/
 CRC_HandleTypeDef hcrc;
 
+I2C_HandleTypeDef hi2c1;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -53,8 +55,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
-
+void initIPD();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -79,33 +82,6 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
-  // Sensor initialisation
-  char lib_version[IPD_STR_LENG];
-  IPD_mcu_type_t mcu = IPD_MCU_STM32;
-  IPD_Instance_t IPD_Instance;
-  IPD_algo_conf_t algo_conf;
-  IPD_device_conf_t device_conf;
-  IPD_init_err_t status;
-
-  // Library API initialization function
-  InfraredPD_Initialize(mcu);
-
-  // Optional: Get version
-  InfraredPD_GetLibVersion(lib_version);
-
-  // Create library algorithm instance
-  IPD_Instance = InfraredPD_CreateInstance(&algo_conf);
-
-  // Optional: Modify algorithm and device configuration
-  // Not doing this for now
-
-  // Setup device configuration
-  device_conf.odr = 30;
-  // Not sure what else to add for config (refer to docs)
-
-  // Start the algorithm engine
-  status = InfraredPD_Start(IPD_Instance, &device_conf, &algo_conf);
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -119,8 +95,9 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_CRC_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-
+  initIPD();				// Initialise IR Sensor Variables
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -207,6 +184,40 @@ static void MX_CRC_Init(void)
 }
 
 /**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -278,25 +289,46 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-  // IR Sensor Interrupt Handler
-  // Using Presence and Motion Detection algorithm
-  Timer_OR_DataRate_Interrupt_Handler(){
-	  IPD_input_t data_in;
-	  IPD_output_t data_out;
+// Initialisation
+void initIPD(){
+	// IR Sensor Variables
+	char lib_version[IPD_STR_LENG];
+	IPD_mcu_type_t mcu = IPD_MCU_STM32;
+	IPD_Instance_t IPD_Instance;
+	IPD_algo_conf_t algo_conf;
+	IPD_device_conf_t device_conf;
+	IPD_init_err_t status;
 
-	  /* Get data from sensor */
-	  ReadSensor(&data_in.t_amb, &data_in.t_obj);
+	// Library API initialization function
+	InfraredPD_Initialize(mcu);
 
-	  /* Execute one step of the algorithms */
-	  InfraredPD_Update(IPD_Instance, &data_in, &data_out);
+	// Create library algorithm instance
+	IPD_Instance = InfraredPD_CreateInstance(&algo_conf);
 
-	  /* Get output data from algorithm */
-	  int16_t ObjectTempComp = data_out.t_obj_comp;
-	  int16_t ObjectTempCompChange = data_out.t_obj_change;
-	  uint8_t MotionDetected = data_out.mot_flag;
-	  uint8_t PresenceDetected = data_out.pres_flag;
+	// Setup device configuration
+	device_conf.odr = 30;
+
+	// Start the algorithm engine
+	status = InfraredPD_Start(IPD_Instance, &device_conf, &algo_conf);
 }
 
+// Handle incoming data
+Timer_OR_DataRate_Interrupt_Handler(){
+	IPD_input_t data_in;
+	IPD_output_t data_out;
+
+	/* Get data from sensor */
+	ReadSensor(&data_in.t_amb, &data_in.t_obj);
+
+	/* Execute one step of the algorithms */
+	InfraredPD_Update(instance, &data_in, &data_out);
+
+	/* Get output data from algorithm */
+	int16_t ObjectTempComp = data_out.t_obj_comp;
+	int16_t ObjectTempCompChange = data_out.t_obj_change;
+	uint8_t MotionDetected = data_out.mot_flag;
+	uint8_t PresenceDetected = data_out.pres_flag;
+}
 /* USER CODE END 4 */
 
 /**

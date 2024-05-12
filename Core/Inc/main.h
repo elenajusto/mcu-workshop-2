@@ -74,6 +74,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 
+#define IPD_STR_LENG 35					// String length for IR sensor
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
