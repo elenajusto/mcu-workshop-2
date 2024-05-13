@@ -21,16 +21,19 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#define IPD_STR_LENG 35
+#include "infrared_pd.h"
+#include <string.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define IPD_STR_LENG 35
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+char msg[23];				// UART Message Buffer
 
 /* USER CODE END PD */
 
@@ -44,24 +47,44 @@ CRC_HandleTypeDef hcrc;
 
 I2C_HandleTypeDef hi2c3;
 
+RTC_HandleTypeDef hrtc;
+
+TIM_HandleTypeDef htim11;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+
+// IR Sensor Data Variables
+int16_t ObjectTempComp;
+int16_t ObjectTempCompChange;
+uint8_t MotionDetected;
+uint8_t PresenceDetected;
+
+// IR Sensor Configuration Variables
+IPD_Instance_t IPD_Instance;
+IPD_mcu_type_t mcu = IPD_MCU_STM32;
+IPD_algo_conf_t algo_conf;
+IPD_device_conf_t device_conf;
+IPD_init_err_t status;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
 static void MX_I2C3_Init(void);
+static void MX_RTC_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_TIM11_Init(void);
 /* USER CODE BEGIN PFP */
-void initIPD();
+void startTimer();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 
 /* USER CODE END 0 */
 
@@ -93,17 +116,34 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
   MX_CRC_Init();
   MX_I2C3_Init();
+  MX_RTC_Init();
+  MX_USART2_UART_Init();
+  MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
-  initIPD();				// Initialise IR Sensor Variables
+
+  // Start Timer
+  startTimer();
+
+  // Initialise infraredPD instance
+  InfraredPD_Initialize(mcu);
+  IPD_Instance = InfraredPD_CreateInstance(&algo_conf);
+
+  device_conf.odr = 30;
+  device_conf.avg_tmos = 32;
+  device_conf.avg_t = 8;
+
+  status = InfraredPD_Start(IPD_Instance, &device_conf, &algo_conf);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	sprintf(msg, "ObjectTemp: %u\n\r", &ObjectTempComp);
+	HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -128,9 +168,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 16;
@@ -218,6 +259,72 @@ static void MX_I2C3_Init(void)
 }
 
 /**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
+  * @brief TIM11 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM11_Init(void)
+{
+
+  /* USER CODE BEGIN TIM11_Init 0 */
+
+  /* USER CODE END TIM11_Init 0 */
+
+  /* USER CODE BEGIN TIM11_Init 1 */
+
+  /* USER CODE END TIM11_Init 1 */
+  htim11.Instance = TIM11;
+  htim11.Init.Prescaler = 319;
+  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim11.Init.Period = 999;
+  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM11_Init 2 */
+
+  /* USER CODE END TIM11_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -270,12 +377,6 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -289,46 +390,83 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-// Initialisation
-void initIPD(){
-	// IR Sensor Variables
-	char lib_version[IPD_STR_LENG];
-	IPD_mcu_type_t mcu = IPD_MCU_STM32;
-	IPD_Instance_t IPD_Instance;
-	IPD_algo_conf_t algo_conf;
-	IPD_device_conf_t device_conf;
-	IPD_init_err_t status;
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if(htim->Instance == TIM11){
+		// InfraredPD functions
+		IPD_input_t data_in;
+		IPD_output_t data_out;
 
-	// Library API initialization function
-	InfraredPD_Initialize(mcu);
+		ReadSensor(&data_in.t_amb, &data_in.t_obj);
 
-	// Create library algorithm instance
-	IPD_Instance = InfraredPD_CreateInstance(&algo_conf);
+		InfraredPD_Update(&IPD_Instance, &data_in, &data_out);
 
-	// Setup device configuration
-	device_conf.odr = 30;
-
-	// Start the algorithm engine
-	status = InfraredPD_Start(IPD_Instance, &device_conf, &algo_conf);
+		ObjectTempComp = data_out.t_obj_comp;
+		ObjectTempCompChange = data_out.t_obj_change;
+		MotionDetected = data_out.mot_flag;
+		PresenceDetected = data_out.pres_flag;
+	}
 }
 
-// Handle incoming data
-Timer_OR_DataRate_Interrupt_Handler(){
-	IPD_input_t data_in;
-	IPD_output_t data_out;
+int32_t ReadSensor(){
+	int32_t ambient;
+	int32_t object;
 
-	/* Get data from sensor */
-	ReadSensor(&data_in.t_amb, &data_in.t_obj);
+	// Enter power down mode
+	powerDown();
 
-	/* Execute one step of the algorithms */
-	InfraredPD_Update(instance, &data_in, &data_out);
+	// Enable access to the embedded functions registers
 
-	/* Get output data from algorithm */
-	int16_t ObjectTempComp = data_out.t_obj_comp;
-	int16_t ObjectTempCompChange = data_out.t_obj_change;
-	uint8_t MotionDetected = data_out.mot_flag;
-	uint8_t PresenceDetected = data_out.pres_flag;
+	// Select read operation mode
+
+	// Set address XXh of the embedded functions register to be read
+
+	// Get register value
+
+	// Disable read operation mode
+
+	// Disable access to the embedded functions registers
+
+	// Enter continuous mode
+	cotMode();
+
+	return ambient, object;
 }
+
+void powerDown(){
+	// Read the FUNC_STATUS (25h) register
+
+	// Wait that the DRDY bit of the STATUS (23h) register is set to 1
+
+	// Set the ODR[3:0] bits of the CTRL1 (20h) register to 0000
+
+	// Read the FUNC_STATUS (25h) register
+
+}
+
+void cotMode(){
+	// Write bit FUNC_CFG_ACCESS = 1 in CTRL2 (21h)
+
+	// Write bit FUNC_CFG_WRITE = 1 in PAGE_RW (11h)
+
+	// Write 2Ah in FUNC_CFG_ADDR (08h)
+
+	// Write 01h in FUNC_CFG_DATA (09h)
+
+	// Write bit FUNC_CFG_WRITE = 0 in PAGE_RW (11h)
+
+	// Write bit FUNC_CFG_ACCESS = 0 in CTRL2 (21h)
+
+	// Write bits ODR[3:0] in CTRL1 (20h) with the desired value
+}
+
+void startTimer(){
+	 // Enable the TIM11 peripheral
+	  __HAL_RCC_TIM11_CLK_ENABLE();
+
+	  // Start the timers
+	  HAL_TIM_Base_Start_IT(&htim11);
+}
+
 /* USER CODE END 4 */
 
 /**
