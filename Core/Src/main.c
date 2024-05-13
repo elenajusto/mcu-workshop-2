@@ -34,7 +34,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 char msg[23];				// UART Message Buffer
-
+char readI2C[9];			// Read buffer for I2C
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -80,6 +80,9 @@ static void MX_USART2_UART_Init(void);
 static void MX_TIM11_Init(void);
 /* USER CODE BEGIN PFP */
 void startTimer();
+int32_t ReadAmbientSensor();
+void powerDown();
+void cotMode();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -396,7 +399,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		IPD_input_t data_in;
 		IPD_output_t data_out;
 
-		ReadSensor(&data_in.t_amb, &data_in.t_obj);
+		data_in.t_amb = ReadAmbientSensor();
+		//data_in.t_obj = ReadSensor();
 
 		InfraredPD_Update(&IPD_Instance, &data_in, &data_out);
 
@@ -407,56 +411,83 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	}
 }
 
-int32_t ReadSensor(){
+int32_t ReadAmbientSensor(){
 	int32_t ambient;
-	int32_t object;
 
 	// Enter power down mode
 	powerDown();
 
 	// Enable access to the embedded functions registers
 
+
 	// Select read operation mode
+
 
 	// Set address XXh of the embedded functions register to be read
 
+
 	// Get register value
+
 
 	// Disable read operation mode
 
+
 	// Disable access to the embedded functions registers
+
 
 	// Enter continuous mode
 	cotMode();
 
-	return ambient, object;
+	return ambient;
 }
 
 void powerDown(){
+
+	char rmsg[8];				 // Read buffer for i2c
+    uint8_t dataToWrite = 0x00;  // Data to set ODR[3:0] bits to 0000
+
 	// Read the FUNC_STATUS (25h) register
+	HAL_I2C_Mem_Read(&hi2c3, 0xF, 0x25, I2C_MEMADD_SIZE_8BIT, (uint8_t*)rmsg, strlen(rmsg)+1, HAL_MAX_DELAY);
 
 	// Wait that the DRDY bit of the STATUS (23h) register is set to 1
+	HAL_Delay(5);
 
 	// Set the ODR[3:0] bits of the CTRL1 (20h) register to 0000
+	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x20, I2C_MEMADD_SIZE_8BIT, &dataToWrite, 1, HAL_MAX_DELAY);
 
 	// Read the FUNC_STATUS (25h) register
-
+	HAL_I2C_Mem_Read(&hi2c3, 0xF, 0x25, I2C_MEMADD_SIZE_8BIT, (uint8_t*)rmsg, strlen(rmsg)+1, HAL_MAX_DELAY);
 }
 
 void cotMode(){
+	uint8_t dataToCTRL2 = 0x10;
+	uint8_t dataToPAGE = 0x64;
+	uint8_t dataToFUNC_CFG_ADDR = 0x2A;
+	uint8_t dataToFUNC_CFG_DATA = 0x1;
+	uint8_t dataToFUNC_CFG_WRITE = 0x0;
+	uint8_t dataToFUNC_CFG_ACCESS = 0x0;
+	uint8_t dataToCTRL1 = 0x7;
+
 	// Write bit FUNC_CFG_ACCESS = 1 in CTRL2 (21h)
+	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x21, I2C_MEMADD_SIZE_8BIT, &dataToCTRL2, 1, HAL_MAX_DELAY);
 
 	// Write bit FUNC_CFG_WRITE = 1 in PAGE_RW (11h)
+	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x11, I2C_MEMADD_SIZE_8BIT, &dataToPAGE, 1, HAL_MAX_DELAY);
 
 	// Write 2Ah in FUNC_CFG_ADDR (08h)
+	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x08, I2C_MEMADD_SIZE_8BIT, &dataToFUNC_CFG_ADDR, 1, HAL_MAX_DELAY);
 
 	// Write 01h in FUNC_CFG_DATA (09h)
+	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x09, I2C_MEMADD_SIZE_8BIT, &dataToFUNC_CFG_DATA, 1, HAL_MAX_DELAY);
 
 	// Write bit FUNC_CFG_WRITE = 0 in PAGE_RW (11h)
+	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x11, I2C_MEMADD_SIZE_8BIT, &dataToFUNC_CFG_WRITE, 1, HAL_MAX_DELAY);
 
 	// Write bit FUNC_CFG_ACCESS = 0 in CTRL2 (21h)
+	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x21, I2C_MEMADD_SIZE_8BIT, &dataToFUNC_CFG_ACCESS, 1, HAL_MAX_DELAY);
 
 	// Write bits ODR[3:0] in CTRL1 (20h) with the desired value
+	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x20, I2C_MEMADD_SIZE_8BIT, &dataToCTRL1, 1, HAL_MAX_DELAY);
 }
 
 void startTimer(){
