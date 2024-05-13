@@ -60,8 +60,6 @@ uint16_t Sensitivity;
 uint8_t DiscardSamples;
 
 /* Extern variables ----------------------------------------------------------*/
-extern int personFlag;
-
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static int16_t TAmbRaw; /* Tambient data [LSB] */

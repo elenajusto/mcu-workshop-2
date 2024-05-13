@@ -36,9 +36,16 @@ extern "C" {
 
 /* Exported variables --------------------------------------------------------*/
 /* Exported defines ----------------------------------------------------------*/
+#warning "Timer instance is unknown, please assign the proper timer handle and timer init function"
+/*
+Example:
 extern TIM_HandleTypeDef htim3;
 #define BSP_IP_TIM_Handle htim3
 #define BSP_IP_TIM_Init MX_TIM3_Init
+*/
+extern TIM_HandleTypeDef h;
+#define BSP_IP_TIM_Handle h
+#define BSP_IP_TIM_Init MX__Init
 
 extern RTC_HandleTypeDef hrtc;
 
