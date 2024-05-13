@@ -80,6 +80,9 @@ IPD_algo_conf_t algo_conf;
 IPD_device_conf_t device_conf;
 IPD_init_err_t status;
 
+//Potentiometer
+int potValue;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,7 +107,7 @@ static int wakeup_thread = 0;
 
 
 // ADC read
-int getPotValue();
+void getPotValue();
 
 // LCD control
 void stateClear();		// No intruder
@@ -187,6 +190,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	getPotValue();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -518,7 +522,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		MotionDetected = data_out.mot_flag;
 		PresenceDetected = data_out.pres_flag;
 
+		// Print IR sensor value
 		sprintf(msg, "ObjectTemp: %u\n\r", &PresenceDetected);
+		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+
+		// Print Potentiometer value
+		sprintf(msg, "ADC Reading: %hu\r\n", &potValue);
 		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
 	}
 }
@@ -527,12 +536,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 
 // ADC read
-int getPotValue(){
+void getPotValue(){
 	/* Get pot value */
 	uint16_t potValue;
 	HAL_ADC_PollForConversion(&hadc1, 5);
 	potValue = HAL_ADC_GetValue(&hadc1);
-	return potValue;
 }
 
 // LCD control - No intruder
