@@ -1,0 +1,10 @@
+../MEMS/Target/custom_env_sensors.c:87:9:CUSTOM_ENV_SENSOR_Init	56	static
+../MEMS/Target/custom_env_sensors.c:155:9:CUSTOM_ENV_SENSOR_DeInit	24	static
+../MEMS/Target/custom_env_sensors.c:181:9:CUSTOM_ENV_SENSOR_GetCapabilities	24	static
+../MEMS/Target/custom_env_sensors.c:207:9:CUSTOM_ENV_SENSOR_ReadID	24	static
+../MEMS/Target/custom_env_sensors.c:237:9:CUSTOM_ENV_SENSOR_Enable	24	static
+../MEMS/Target/custom_env_sensors.c:277:9:CUSTOM_ENV_SENSOR_Disable	24	static
+../MEMS/Target/custom_env_sensors.c:318:9:CUSTOM_ENV_SENSOR_GetOutputDataRate	32	static
+../MEMS/Target/custom_env_sensors.c:359:9:CUSTOM_ENV_SENSOR_SetOutputDataRate	32	static
+../MEMS/Target/custom_env_sensors.c:400:9:CUSTOM_ENV_SENSOR_GetValue	32	static
+../MEMS/Target/custom_env_sensors.c:445:16:STHS34PF80_0_Probe	80	static

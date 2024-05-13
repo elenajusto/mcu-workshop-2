@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "app_mems.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -33,12 +34,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define IPD_STR_LENG 35
-#define STHS34PF80_I2C_ADDR 0xF
-#define TOBJECT_L 0x26
-#define TOBJECT_H 0x27
-#define TAMBIENT_L 0x28
-#define TAMBIENT_H 0x29
 
 /* USER CODE END PTD */
 
@@ -61,28 +56,15 @@ I2C_HandleTypeDef hi2c3;
 
 RTC_HandleTypeDef hrtc;
 
+TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
-
-UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-// IR Sensor Data Variables
-int16_t ObjectTempComp;
-int16_t ObjectTempCompChange;
-uint8_t MotionDetected;
-uint8_t PresenceDetected;
-
-// IR Sensor Configuration Variables
-IPD_Instance_t IPD_Instance;
-IPD_mcu_type_t mcu = IPD_MCU_STM32;
-IPD_algo_conf_t algo_conf;
-IPD_device_conf_t device_conf;
-IPD_init_err_t status;
-
 //Potentiometer
 int potValue;
-
+int16_t personFlag;
+int redBlink = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -90,21 +72,10 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CRC_Init(void);
 static void MX_RTC_Init(void);
-static void MX_USART2_UART_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
-
-// sths34pf80-pid read and write functions that use the I²C
-static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp, uint16_t len);
-static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len);
-static void tx_com( uint8_t *tx_buffer, uint16_t len );
-static void platform_delay(uint32_t ms);
-static void platform_init(void);
-static stmdev_ctx_t dev_ctx;
-static int wakeup_thread = 0;
-
 
 // ADC read
 void getPotValue();
@@ -112,6 +83,9 @@ void getPotValue();
 // LCD control
 void stateClear();		// No intruder
 void stateIntruder();	// Intruder found
+
+static void pulseYellowLED(void);
+static void blinkRed(void);
 
 /* USER CODE END PFP */
 
@@ -151,38 +125,17 @@ int main(void)
   MX_GPIO_Init();
   MX_CRC_Init();
   MX_RTC_Init();
-  MX_USART2_UART_Init();
   MX_TIM4_Init();
   MX_ADC1_Init();
   MX_I2C3_Init();
+  MX_MEMS_Init();
   /* USER CODE BEGIN 2 */
 
   // Debug
-  sprintf(msg, "Timer Starting.\r\n");
-  HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+  //sprintf(msg, "Program Starting.");
+  //HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
 
-  // Start Timer
-  // Enable the TIM4 peripheral
-  //__HAL_RCC_TIM4_CLK_ENABLE();
-  HAL_NVIC_SetPriority(TIM4_IRQn, 1, 1);
-  HAL_NVIC_EnableIRQ(TIM4_IRQn);
-  HAL_TIM_Base_Start_IT(&htim4);
-
-  // Initialise infraredPD instance
-  InfraredPD_Initialize(mcu);
-  IPD_Instance = InfraredPD_CreateInstance(&algo_conf);
-
-  device_conf.odr = 30;
-  device_conf.avg_tmos = 32;
-  device_conf.avg_t = 8;
-
-  status = InfraredPD_Start(IPD_Instance, &device_conf, &algo_conf);
-
-  // Debug
-  sprintf(msg, "Program Starting.");
-  HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
-
-  stateClear();
+  //stateClear();
 
   /* USER CODE END 2 */
 
@@ -190,10 +143,23 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	getPotValue();
+	MX_MEMS_Process();
     /* USER CODE END WHILE */
 
+
     /* USER CODE BEGIN 3 */
+
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	  pulseYellowLED();
+
+	  if (personFlag == 1){
+		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+		  HAL_Delay(0.001); // might be able to remove depending on time of execution of other code.
+		  blinkRed();
+	  } else {
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
+	  }
+
   }
   /* USER CODE END 3 */
 }
@@ -393,6 +359,51 @@ static void MX_RTC_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief TIM4 Initialization Function
   * @param None
   * @retval None
@@ -438,46 +449,12 @@ static void MX_TIM4_Init(void)
 }
 
 /**
-  * @brief USART2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART2_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART2_Init 0 */
-
-  /* USER CODE END USART2_Init 0 */
-
-  /* USER CODE BEGIN USART2_Init 1 */
-
-  /* USER CODE END USART2_Init 1 */
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART2_Init 2 */
-
-  /* USER CODE END USART2_Init 2 */
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
   */
 static void MX_GPIO_Init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
@@ -487,50 +464,11 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
-
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(htim->Instance == TIM4){
-		// InfraredPD functions
-		IPD_input_t data_in;
-		IPD_output_t data_out;
-
-		// Debug
-		sprintf(msg, "Running.\r\n");
-		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
-
-		//ReadSensor(data_in.t_amb, data_in.t_obj);
-
-		InfraredPD_Update(&IPD_Instance, &data_in, &data_out);
-
-		ObjectTempComp = data_out.t_obj_comp;
-		ObjectTempCompChange = data_out.t_obj_change;
-		MotionDetected = data_out.mot_flag;
-		PresenceDetected = data_out.pres_flag;
-
-		// Print IR sensor value
-		sprintf(msg, "ObjectTemp: %u\n\r", &PresenceDetected);
-		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
-
-		// Print Potentiometer value
-		sprintf(msg, "ADC Reading: %hu\r\n", &potValue);
-		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
-	}
-}
 
 // Read sensor value
 
@@ -558,6 +496,31 @@ void stateIntruder(){
 	I2C_LCD_SetCursor(MyI2C_LCD, 0, 0);
 	I2C_LCD_WriteString(MyI2C_LCD, "INTRUDER ALERT");
 }
+
+
+int direction = 1;
+int brightness = 0;
+void pulseYellowLED() {
+	if (direction > 0) {
+		brightness++;
+		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1, brightness);
+	} else {
+		brightness--;
+		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1, brightness);
+	}
+	if ((brightness == 0) || (brightness == 1000)) {
+		direction = -direction;
+	}
+}
+
+void blinkRed() {
+	redBlink++;
+	if (redBlink > 300) {
+		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+		  redBlink = 0;
+	  }
+}
+
 
 /* USER CODE END 4 */
 

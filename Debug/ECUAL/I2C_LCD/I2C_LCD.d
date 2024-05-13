@@ -36,6 +36,9 @@ ECUAL/I2C_LCD/I2C_LCD.o: ../ECUAL/I2C_LCD/I2C_LCD.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo.h \
+ ../Core/Inc/stm32f4xx_nucleo_conf.h \
+ ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h \
  ../ECUAL/I2C_LCD/../../Util/Util.h
 ../ECUAL/I2C_LCD/I2C_LCD.h:
 ../ECUAL/I2C_LCD/I2C_LCD_cfg.h:
@@ -76,4 +79,7 @@ ECUAL/I2C_LCD/I2C_LCD.o: ../ECUAL/I2C_LCD/I2C_LCD.c \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo.h:
+../Core/Inc/stm32f4xx_nucleo_conf.h:
+../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h:
 ../ECUAL/I2C_LCD/../../Util/Util.h:

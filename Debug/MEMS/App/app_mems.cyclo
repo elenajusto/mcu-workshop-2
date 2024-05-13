@@ -1,0 +1,13 @@
+../MEMS/App/app_mems.c:82:6:MX_MEMS_Init	1
+../MEMS/App/app_mems.c:104:6:MX_MEMS_Process	2
+../MEMS/App/app_mems.c:128:6:HAL_TIM_PeriodElapsedCallback	2
+../MEMS/App/app_mems.c:141:13:MX_PresenceDetection_Init	1
+../MEMS/App/app_mems.c:185:13:MX_PresenceDetection_Process	10
+../MEMS/App/app_mems.c:252:13:Init_Sensors	1
+../MEMS/App/app_mems.c:270:13:RTC_Handler	2
+../MEMS/App/app_mems.c:311:13:PD_Data_Handler	2
+../MEMS/App/app_mems.c:344:13:Infrared_Sensor_Handler	2
+../MEMS/App/app_mems.c:361:13:TIM_Config	2
+../MEMS/App/app_mems.c:383:13:DWT_Init	1
+../MEMS/App/app_mems.c:394:13:DWT_Start	1
+../MEMS/App/app_mems.c:405:17:DWT_Stop	1

@@ -1,8 +1,7 @@
-X-CUBE-MEMS1/Target/custom_env_sensors_ex.o: \
- ../X-CUBE-MEMS1/Target/custom_env_sensors_ex.c \
- ../X-CUBE-MEMS1/Target/custom_env_sensors_ex.h \
- ../X-CUBE-MEMS1/Target/custom_env_sensors.h \
- ../X-CUBE-MEMS1/Target/custom_mems_conf.h \
+Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo.o: \
+ ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo.c \
+ ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo.h \
+ ../Core/Inc/stm32f4xx_nucleo_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -39,16 +38,10 @@ X-CUBE-MEMS1/Target/custom_env_sensors_ex.o: \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- ../Core/Inc/stm32f4xx_nucleo_bus.h ../Core/Inc/stm32f4xx_nucleo_conf.h \
- ../Core/Inc/stm32f4xx_nucleo_errno.h \
- ../Core/Inc/stm32f4xx_nucleo_errno.h \
- ../Drivers/BSP/Components/Common/env_sensor.h \
- ../Drivers/BSP/Components/sths34pf80/sths34pf80.h \
- ../Drivers/BSP/Components/sths34pf80/sths34pf80_reg.h \
- ../Core/Inc/RTE_Components.h
-../X-CUBE-MEMS1/Target/custom_env_sensors_ex.h:
-../X-CUBE-MEMS1/Target/custom_env_sensors.h:
-../X-CUBE-MEMS1/Target/custom_mems_conf.h:
+ ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h \
+ ../Core/Inc/main.h ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo.h
+../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo.h:
+../Core/Inc/stm32f4xx_nucleo_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:
@@ -85,11 +78,6 @@ X-CUBE-MEMS1/Target/custom_env_sensors_ex.o: \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
-../Core/Inc/stm32f4xx_nucleo_bus.h:
-../Core/Inc/stm32f4xx_nucleo_conf.h:
-../Core/Inc/stm32f4xx_nucleo_errno.h:
-../Core/Inc/stm32f4xx_nucleo_errno.h:
-../Drivers/BSP/Components/Common/env_sensor.h:
-../Drivers/BSP/Components/sths34pf80/sths34pf80.h:
-../Drivers/BSP/Components/sths34pf80/sths34pf80_reg.h:
-../Core/Inc/RTE_Components.h:
+../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h:
+../Core/Inc/main.h:
+../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo.h:

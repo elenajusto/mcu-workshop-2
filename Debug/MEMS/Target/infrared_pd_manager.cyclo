@@ -1,0 +1,3 @@
+../MEMS/Target/infrared_pd_manager.c:41:6:InfraredPD_manager_init	2
+../MEMS/Target/infrared_pd_manager.c:74:6:InfraredPD_manager_run	1
+../MEMS/Target/infrared_pd_manager.c:85:6:InfraredPD_manager_get_version	1

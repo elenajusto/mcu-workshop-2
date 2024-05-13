@@ -1,0 +1,10 @@
+../MEMS/Target/custom_env_sensors.c:87:9:CUSTOM_ENV_SENSOR_Init	13
+../MEMS/Target/custom_env_sensors.c:155:9:CUSTOM_ENV_SENSOR_DeInit	3
+../MEMS/Target/custom_env_sensors.c:181:9:CUSTOM_ENV_SENSOR_GetCapabilities	3
+../MEMS/Target/custom_env_sensors.c:207:9:CUSTOM_ENV_SENSOR_ReadID	3
+../MEMS/Target/custom_env_sensors.c:237:9:CUSTOM_ENV_SENSOR_Enable	4
+../MEMS/Target/custom_env_sensors.c:277:9:CUSTOM_ENV_SENSOR_Disable	4
+../MEMS/Target/custom_env_sensors.c:318:9:CUSTOM_ENV_SENSOR_GetOutputDataRate	4
+../MEMS/Target/custom_env_sensors.c:359:9:CUSTOM_ENV_SENSOR_SetOutputDataRate	4
+../MEMS/Target/custom_env_sensors.c:400:9:CUSTOM_ENV_SENSOR_GetValue	4
+../MEMS/Target/custom_env_sensors.c:445:16:STHS34PF80_0_Probe	14

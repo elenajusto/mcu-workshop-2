@@ -1,7 +1,5 @@
-X-CUBE-MEMS1/Target/custom_env_sensors.o: \
- ../X-CUBE-MEMS1/Target/custom_env_sensors.c \
- ../X-CUBE-MEMS1/Target/custom_env_sensors.h \
- ../X-CUBE-MEMS1/Target/custom_mems_conf.h \
+MEMS/Target/custom_env_sensors.o: ../MEMS/Target/custom_env_sensors.c \
+ ../MEMS/Target/custom_env_sensors.h ../MEMS/Target/custom_mems_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -39,13 +37,12 @@ X-CUBE-MEMS1/Target/custom_env_sensors.o: \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Core/Inc/stm32f4xx_nucleo_bus.h ../Core/Inc/stm32f4xx_nucleo_conf.h \
- ../Core/Inc/stm32f4xx_nucleo_errno.h \
- ../Core/Inc/stm32f4xx_nucleo_errno.h \
+ ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h \
  ../Drivers/BSP/Components/Common/env_sensor.h \
  ../Drivers/BSP/Components/sths34pf80/sths34pf80.h \
  ../Drivers/BSP/Components/sths34pf80/sths34pf80_reg.h
-../X-CUBE-MEMS1/Target/custom_env_sensors.h:
-../X-CUBE-MEMS1/Target/custom_mems_conf.h:
+../MEMS/Target/custom_env_sensors.h:
+../MEMS/Target/custom_mems_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:
@@ -84,8 +81,7 @@ X-CUBE-MEMS1/Target/custom_env_sensors.o: \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
 ../Core/Inc/stm32f4xx_nucleo_bus.h:
 ../Core/Inc/stm32f4xx_nucleo_conf.h:
-../Core/Inc/stm32f4xx_nucleo_errno.h:
-../Core/Inc/stm32f4xx_nucleo_errno.h:
+../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h:
 ../Drivers/BSP/Components/Common/env_sensor.h:
 ../Drivers/BSP/Components/sths34pf80/sths34pf80.h:
 ../Drivers/BSP/Components/sths34pf80/sths34pf80_reg.h:
