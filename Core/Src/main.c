@@ -57,6 +57,8 @@ ADC_HandleTypeDef hadc1;
 
 CRC_HandleTypeDef hcrc;
 
+I2C_HandleTypeDef hi2c3;
+
 RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim4;
@@ -88,6 +90,7 @@ static void MX_RTC_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 
 // sths34pf80-pid read and write functions that use the I²C
@@ -148,6 +151,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM4_Init();
   MX_ADC1_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
 
   // Debug
@@ -174,6 +178,9 @@ int main(void)
   // Debug
   sprintf(msg, "Program Starting.");
   HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+
+  stateClear();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -309,6 +316,40 @@ static void MX_CRC_Init(void)
   /* USER CODE BEGIN CRC_Init 2 */
 
   /* USER CODE END CRC_Init 2 */
+
+}
+
+/**
+  * @brief I2C3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C3_Init(void)
+{
+
+  /* USER CODE BEGIN I2C3_Init 0 */
+
+  /* USER CODE END I2C3_Init 0 */
+
+  /* USER CODE BEGIN I2C3_Init 1 */
+
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.ClockSpeed = 100000;
+  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c3.Init.OwnAddress1 = 0;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
+
+  /* USER CODE END I2C3_Init 2 */
 
 }
 
@@ -477,10 +518,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		MotionDetected = data_out.mot_flag;
 		PresenceDetected = data_out.pres_flag;
 
-		sprintf(msg, "ObjectTemp: %u\n\r", &ObjectTempComp);
+		sprintf(msg, "ObjectTemp: %u\n\r", &PresenceDetected);
 		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
 	}
 }
+
+// Read sensor value
+
 
 // ADC read
 int getPotValue(){
@@ -491,21 +535,21 @@ int getPotValue(){
 	return potValue;
 }
 
-// LCD control - // No intruder
+// LCD control - No intruder
 void stateClear(){
+	I2C_LCD_Init(MyI2C_LCD);
 	I2C_LCD_Init(MyI2C_LCD);
 	I2C_LCD_SetCursor(MyI2C_LCD, 0, 0);
 	I2C_LCD_WriteString(MyI2C_LCD, "All Clear");
 }
 
-// LCD control - // Intruder found
-
+// LCD control - Intruder found
 void stateIntruder(){
+	I2C_LCD_Init(MyI2C_LCD);
 	I2C_LCD_Init(MyI2C_LCD);
 	I2C_LCD_SetCursor(MyI2C_LCD, 0, 0);
 	I2C_LCD_WriteString(MyI2C_LCD, "INTRUDER ALERT");
 }
-
 
 /* USER CODE END 4 */
 

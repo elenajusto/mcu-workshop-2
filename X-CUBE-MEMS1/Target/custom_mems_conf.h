@@ -35,10 +35,10 @@ extern "C" {
 
 #define USE_CUSTOM_ENV_SENSOR_STHS34PF80_0        1U
 
-#define CUSTOM_STHS34PF80_0_I2C_Init BSP_I2C3_Init
-#define CUSTOM_STHS34PF80_0_I2C_DeInit BSP_I2C3_DeInit
-#define CUSTOM_STHS34PF80_0_I2C_ReadReg BSP_I2C3_ReadReg
-#define CUSTOM_STHS34PF80_0_I2C_WriteReg BSP_I2C3_WriteReg
+#define CUSTOM_STHS34PF80_0_I2C_Init BSP_I2C1_Init
+#define CUSTOM_STHS34PF80_0_I2C_DeInit BSP_I2C1_DeInit
+#define CUSTOM_STHS34PF80_0_I2C_ReadReg BSP_I2C1_ReadReg
+#define CUSTOM_STHS34PF80_0_I2C_WriteReg BSP_I2C1_WriteReg
 
 #ifdef __cplusplus
 }
