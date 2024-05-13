@@ -29,12 +29,18 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 #define IPD_STR_LENG 35
+#define STHS34PF80_I2C_ADDR 0xF
+#define TOBJECT_L 0x26
+#define TOBJECT_H 0x27
+#define TAMBIENT_L 0x28
+#define TAMBIENT_H 0x29
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 char msg[23];				// UART Message Buffer
-char readI2C[9];			// Read buffer for I2C
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -49,7 +55,7 @@ I2C_HandleTypeDef hi2c3;
 
 RTC_HandleTypeDef hrtc;
 
-TIM_HandleTypeDef htim11;
+TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
 
@@ -77,12 +83,10 @@ static void MX_CRC_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_RTC_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_TIM11_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
-void startTimer();
-int32_t ReadAmbientSensor();
-void powerDown();
-void cotMode();
+void ReadSensor(int16_t *ambientTemp, int16_t *objectTemp);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -123,11 +127,19 @@ int main(void)
   MX_I2C3_Init();
   MX_RTC_Init();
   MX_USART2_UART_Init();
-  MX_TIM11_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
+  // Debug
+  sprintf(msg, "Timer Starting.\r\n");
+  HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+
   // Start Timer
-  startTimer();
+  // Enable the TIM4 peripheral
+  //__HAL_RCC_TIM4_CLK_ENABLE();
+  HAL_NVIC_SetPriority(TIM4_IRQn, 1, 1);
+  HAL_NVIC_EnableIRQ(TIM4_IRQn);
+  HAL_TIM_Base_Start_IT(&htim4);
 
   // Initialise infraredPD instance
   InfraredPD_Initialize(mcu);
@@ -139,14 +151,15 @@ int main(void)
 
   status = InfraredPD_Start(IPD_Instance, &device_conf, &algo_conf);
 
+  // Debug
+  sprintf(msg, "Program Starting.");
+  HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	sprintf(msg, "ObjectTemp: %u\n\r", &ObjectTempComp);
-	HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -297,33 +310,47 @@ static void MX_RTC_Init(void)
 }
 
 /**
-  * @brief TIM11 Initialization Function
+  * @brief TIM4 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM11_Init(void)
+static void MX_TIM4_Init(void)
 {
 
-  /* USER CODE BEGIN TIM11_Init 0 */
+  /* USER CODE BEGIN TIM4_Init 0 */
 
-  /* USER CODE END TIM11_Init 0 */
+  /* USER CODE END TIM4_Init 0 */
 
-  /* USER CODE BEGIN TIM11_Init 1 */
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-  /* USER CODE END TIM11_Init 1 */
-  htim11.Instance = TIM11;
-  htim11.Init.Prescaler = 319;
-  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim11.Init.Period = 999;
-  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 319;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 999;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM11_Init 2 */
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
 
-  /* USER CODE END TIM11_Init 2 */
+  /* USER CODE END TIM4_Init 2 */
 
 }
 
@@ -394,13 +421,16 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(htim->Instance == TIM11){
+	if(htim->Instance == TIM4){
 		// InfraredPD functions
 		IPD_input_t data_in;
 		IPD_output_t data_out;
 
-		data_in.t_amb = ReadAmbientSensor();
-		//data_in.t_obj = ReadSensor();
+		// Debug
+		sprintf(msg, "Running.\r\n");
+		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+
+		ReadSensor(data_in.t_amb, data_in.t_obj);
 
 		InfraredPD_Update(&IPD_Instance, &data_in, &data_out);
 
@@ -408,94 +438,26 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		ObjectTempCompChange = data_out.t_obj_change;
 		MotionDetected = data_out.mot_flag;
 		PresenceDetected = data_out.pres_flag;
+
+		sprintf(msg, "ObjectTemp: %u\n\r", &ObjectTempComp);
+		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
 	}
 }
 
-int32_t ReadAmbientSensor(){
-	int32_t ambient;
+void ReadSensor(int16_t *ambientTemp, int16_t *objectTemp) {
+    uint8_t tempBytes[4];
 
-	// Enter power down mode
-	powerDown();
+    // Read ambient temperature
+    HAL_I2C_Mem_Read(&hi2c3, STHS34PF80_I2C_ADDR << 1, TAMBIENT_L, I2C_MEMADD_SIZE_8BIT, tempBytes, 2, 1000);
+    int16_t ambientTempRaw = (tempBytes[1] << 8) | tempBytes[0];
 
-	// Enable access to the embedded functions registers
+    // Read object temperature
+    HAL_I2C_Mem_Read(&hi2c3, STHS34PF80_I2C_ADDR << 1, TOBJECT_L, I2C_MEMADD_SIZE_8BIT, tempBytes + 2, 2, 1000);
+    int16_t objectTempRaw = (tempBytes[3] << 8) | tempBytes[2];
 
-
-	// Select read operation mode
-
-
-	// Set address XXh of the embedded functions register to be read
-
-
-	// Get register value
-
-
-	// Disable read operation mode
-
-
-	// Disable access to the embedded functions registers
-
-
-	// Enter continuous mode
-	cotMode();
-
-	return ambient;
-}
-
-void powerDown(){
-
-	char rmsg[8];				 // Read buffer for i2c
-    uint8_t dataToWrite = 0x00;  // Data to set ODR[3:0] bits to 0000
-
-	// Read the FUNC_STATUS (25h) register
-	HAL_I2C_Mem_Read(&hi2c3, 0xF, 0x25, I2C_MEMADD_SIZE_8BIT, (uint8_t*)rmsg, strlen(rmsg)+1, HAL_MAX_DELAY);
-
-	// Wait that the DRDY bit of the STATUS (23h) register is set to 1
-	HAL_Delay(5);
-
-	// Set the ODR[3:0] bits of the CTRL1 (20h) register to 0000
-	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x20, I2C_MEMADD_SIZE_8BIT, &dataToWrite, 1, HAL_MAX_DELAY);
-
-	// Read the FUNC_STATUS (25h) register
-	HAL_I2C_Mem_Read(&hi2c3, 0xF, 0x25, I2C_MEMADD_SIZE_8BIT, (uint8_t*)rmsg, strlen(rmsg)+1, HAL_MAX_DELAY);
-}
-
-void cotMode(){
-	uint8_t dataToCTRL2 = 0x10;
-	uint8_t dataToPAGE = 0x64;
-	uint8_t dataToFUNC_CFG_ADDR = 0x2A;
-	uint8_t dataToFUNC_CFG_DATA = 0x1;
-	uint8_t dataToFUNC_CFG_WRITE = 0x0;
-	uint8_t dataToFUNC_CFG_ACCESS = 0x0;
-	uint8_t dataToCTRL1 = 0x7;
-
-	// Write bit FUNC_CFG_ACCESS = 1 in CTRL2 (21h)
-	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x21, I2C_MEMADD_SIZE_8BIT, &dataToCTRL2, 1, HAL_MAX_DELAY);
-
-	// Write bit FUNC_CFG_WRITE = 1 in PAGE_RW (11h)
-	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x11, I2C_MEMADD_SIZE_8BIT, &dataToPAGE, 1, HAL_MAX_DELAY);
-
-	// Write 2Ah in FUNC_CFG_ADDR (08h)
-	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x08, I2C_MEMADD_SIZE_8BIT, &dataToFUNC_CFG_ADDR, 1, HAL_MAX_DELAY);
-
-	// Write 01h in FUNC_CFG_DATA (09h)
-	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x09, I2C_MEMADD_SIZE_8BIT, &dataToFUNC_CFG_DATA, 1, HAL_MAX_DELAY);
-
-	// Write bit FUNC_CFG_WRITE = 0 in PAGE_RW (11h)
-	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x11, I2C_MEMADD_SIZE_8BIT, &dataToFUNC_CFG_WRITE, 1, HAL_MAX_DELAY);
-
-	// Write bit FUNC_CFG_ACCESS = 0 in CTRL2 (21h)
-	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x21, I2C_MEMADD_SIZE_8BIT, &dataToFUNC_CFG_ACCESS, 1, HAL_MAX_DELAY);
-
-	// Write bits ODR[3:0] in CTRL1 (20h) with the desired value
-	HAL_I2C_Mem_Write(&hi2c3, 0xF, 0x20, I2C_MEMADD_SIZE_8BIT, &dataToCTRL1, 1, HAL_MAX_DELAY);
-}
-
-void startTimer(){
-	 // Enable the TIM11 peripheral
-	  __HAL_RCC_TIM11_CLK_ENABLE();
-
-	  // Start the timers
-	  HAL_TIM_Base_Start_IT(&htim11);
+    // Convert raw data to temperature (assuming sensitivity and calibration handled elsewhere)
+    *ambientTemp = ambientTempRaw;  // Example conversion factor
+    *objectTemp = objectTempRaw; // Example conversion factor
 }
 
 /* USER CODE END 4 */
