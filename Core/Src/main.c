@@ -27,7 +27,7 @@
 
 #include "../../ECUAL/I2C_LCD/I2C_LCD.h"
 
-#include "sths34pf80_reg.h""
+#include "sths34pf80_reg.h"
 #include "sths34pf80.h"
 /* USER CODE END Includes */
 
@@ -45,7 +45,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 char msg[23];				// UART Message Buffer
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -99,6 +98,14 @@ static void platform_delay(uint32_t ms);
 static void platform_init(void);
 static stmdev_ctx_t dev_ctx;
 static int wakeup_thread = 0;
+
+
+// ADC read
+int getPotValue();
+
+// LCD control
+void stateClear();		// No intruder
+void stateIntruder();	// Intruder found
 
 /* USER CODE END PFP */
 
@@ -473,6 +480,30 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		sprintf(msg, "ObjectTemp: %u\n\r", &ObjectTempComp);
 		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
 	}
+}
+
+// ADC read
+int getPotValue(){
+	/* Get pot value */
+	uint16_t potValue;
+	HAL_ADC_PollForConversion(&hadc1, 5);
+	potValue = HAL_ADC_GetValue(&hadc1);
+	return potValue;
+}
+
+// LCD control - // No intruder
+void stateClear(){
+	I2C_LCD_Init(MyI2C_LCD);
+	I2C_LCD_SetCursor(MyI2C_LCD, 0, 0);
+	I2C_LCD_WriteString(MyI2C_LCD, "All Clear");
+}
+
+// LCD control - // Intruder found
+
+void stateIntruder(){
+	I2C_LCD_Init(MyI2C_LCD);
+	I2C_LCD_SetCursor(MyI2C_LCD, 0, 0);
+	I2C_LCD_WriteString(MyI2C_LCD, "INTRUDER ALERT");
 }
 
 
