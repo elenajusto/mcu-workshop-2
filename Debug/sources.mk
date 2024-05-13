@@ -24,5 +24,9 @@ C_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+Drivers/BSP/Components/sths34pf80 \
 Drivers/STM32F4xx_HAL_Driver/Src \
+ECUAL/I2C_LCD \
+X-CUBE-MEMS1/Target \
+util \
 

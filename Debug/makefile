@@ -9,7 +9,11 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include util/subdir.mk
+-include X-CUBE-MEMS1/Target/subdir.mk
+-include ECUAL/I2C_LCD/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
+-include Drivers/BSP/Components/sths34pf80/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include objects.mk

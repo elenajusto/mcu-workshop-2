@@ -24,6 +24,11 @@
 #include "infrared_pd.h"
 #include <string.h>
 #include <stdio.h>
+
+#include "../../ECUAL/I2C_LCD/I2C_LCD.h"
+
+#include "sths34pf80_reg.h""
+#include "sths34pf80.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,13 +50,13 @@ char msg[23];				// UART Message Buffer
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define MyI2C_LCD I2C_LCD_1		// LCD Instance
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-CRC_HandleTypeDef hcrc;
+ADC_HandleTypeDef hadc1;
 
-I2C_HandleTypeDef hi2c3;
+CRC_HandleTypeDef hcrc;
 
 RTC_HandleTypeDef hrtc;
 
@@ -80,12 +85,20 @@ IPD_init_err_t status;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CRC_Init(void);
-static void MX_I2C3_Init(void);
 static void MX_RTC_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
-void ReadSensor(int16_t *ambientTemp, int16_t *objectTemp);
+
+// sths34pf80-pid read and write functions that use the I²C
+static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp, uint16_t len);
+static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len);
+static void tx_com( uint8_t *tx_buffer, uint16_t len );
+static void platform_delay(uint32_t ms);
+static void platform_init(void);
+static stmdev_ctx_t dev_ctx;
+static int wakeup_thread = 0;
 
 /* USER CODE END PFP */
 
@@ -124,10 +137,10 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_CRC_Init();
-  MX_I2C3_Init();
   MX_RTC_Init();
   MX_USART2_UART_Init();
   MX_TIM4_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
   // Debug
@@ -215,6 +228,58 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
   * @brief CRC Initialization Function
   * @param None
   * @retval None
@@ -237,40 +302,6 @@ static void MX_CRC_Init(void)
   /* USER CODE BEGIN CRC_Init 2 */
 
   /* USER CODE END CRC_Init 2 */
-
-}
-
-/**
-  * @brief I2C3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C3_Init(void)
-{
-
-  /* USER CODE BEGIN I2C3_Init 0 */
-
-  /* USER CODE END I2C3_Init 0 */
-
-  /* USER CODE BEGIN I2C3_Init 1 */
-
-  /* USER CODE END I2C3_Init 1 */
-  hi2c3.Instance = I2C3;
-  hi2c3.Init.ClockSpeed = 100000;
-  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c3.Init.OwnAddress1 = 0;
-  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c3.Init.OwnAddress2 = 0;
-  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C3_Init 2 */
-
-  /* USER CODE END I2C3_Init 2 */
 
 }
 
@@ -430,7 +461,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		sprintf(msg, "Running.\r\n");
 		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
 
-		ReadSensor(data_in.t_amb, data_in.t_obj);
+		//ReadSensor(data_in.t_amb, data_in.t_obj);
 
 		InfraredPD_Update(&IPD_Instance, &data_in, &data_out);
 
@@ -444,21 +475,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	}
 }
 
-void ReadSensor(int16_t *ambientTemp, int16_t *objectTemp) {
-    uint8_t tempBytes[4];
-
-    // Read ambient temperature
-    HAL_I2C_Mem_Read(&hi2c3, STHS34PF80_I2C_ADDR << 1, TAMBIENT_L, I2C_MEMADD_SIZE_8BIT, tempBytes, 2, 1000);
-    int16_t ambientTempRaw = (tempBytes[1] << 8) | tempBytes[0];
-
-    // Read object temperature
-    HAL_I2C_Mem_Read(&hi2c3, STHS34PF80_I2C_ADDR << 1, TOBJECT_L, I2C_MEMADD_SIZE_8BIT, tempBytes + 2, 2, 1000);
-    int16_t objectTempRaw = (tempBytes[3] << 8) | tempBytes[2];
-
-    // Convert raw data to temperature (assuming sensitivity and calibration handled elsewhere)
-    *ambientTemp = ambientTempRaw;  // Example conversion factor
-    *objectTemp = objectTempRaw; // Example conversion factor
-}
 
 /* USER CODE END 4 */
 
