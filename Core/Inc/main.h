@@ -62,6 +62,8 @@ void MX_TIM5_Init(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SERVO_OUT_Pin GPIO_PIN_2
+#define SERVO_OUT_GPIO_Port GPIOA
 #define POT_IN_Pin GPIO_PIN_4
 #define POT_IN_GPIO_Port GPIOA
 #define RED_LED_Pin GPIO_PIN_7
