@@ -50,6 +50,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 void MX_TIM3_Init(void);
@@ -59,6 +61,12 @@ void MX_TIM3_Init(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define POT_IN_Pin GPIO_PIN_4
+#define POT_IN_GPIO_Port GPIOA
+#define RED_LED_Pin GPIO_PIN_7
+#define RED_LED_GPIO_Port GPIOA
+#define YELLOW_LED_Pin GPIO_PIN_0
+#define YELLOW_LED_GPIO_Port GPIOB
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
