@@ -421,7 +421,7 @@ static void I2C1_MspInit(I2C_HandleTypeDef* i2cHandle)
 
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**I2C1 GPIO Configuration
-    PB6     ------> I2C1_SCL
+    PB8     ------> I2C1_SCL
     PB9     ------> I2C1_SDA
     */
     GPIO_InitStruct.Pin = BUS_I2C1_SCL_GPIO_PIN;
@@ -454,7 +454,7 @@ static void I2C1_MspDeInit(I2C_HandleTypeDef* i2cHandle)
     __HAL_RCC_I2C1_CLK_DISABLE();
 
     /**I2C1 GPIO Configuration
-    PB6     ------> I2C1_SCL
+    PB8     ------> I2C1_SCL
     PB9     ------> I2C1_SDA
     */
     HAL_GPIO_DeInit(BUS_I2C1_SCL_GPIO_PORT, BUS_I2C1_SCL_GPIO_PIN);
