@@ -40,14 +40,7 @@ MEMS/Target/com.o: ../MEMS/Target/com.c ../MEMS/Target/com.h \
  ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h \
  ../MEMS/Target/serial_protocol.h ../MEMS/Target/bsp_ip_conf.h \
  ../MEMS/Target/custom_mems_control.h ../Core/Inc/RTE_Components.h \
- ../MEMS/Target/custom_env_sensors.h ../MEMS/Target/custom_mems_conf.h \
- ../Core/Inc/stm32f4xx_nucleo_bus.h ../Core/Inc/stm32f4xx_nucleo_conf.h \
- ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h \
- ../Drivers/BSP/Components/Common/env_sensor.h \
- ../Drivers/BSP/Components/sths34pf80/sths34pf80.h \
- ../Drivers/BSP/Components/sths34pf80/sths34pf80_reg.h \
- ../MEMS/Target/custom_mems_control_ex.h \
- ../MEMS/Target/custom_env_sensors_ex.h
+ ../MEMS/Target/custom_mems_control_ex.h
 ../MEMS/Target/com.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
@@ -93,13 +86,4 @@ MEMS/Target/com.o: ../MEMS/Target/com.c ../MEMS/Target/com.h \
 ../MEMS/Target/bsp_ip_conf.h:
 ../MEMS/Target/custom_mems_control.h:
 ../Core/Inc/RTE_Components.h:
-../MEMS/Target/custom_env_sensors.h:
-../MEMS/Target/custom_mems_conf.h:
-../Core/Inc/stm32f4xx_nucleo_bus.h:
-../Core/Inc/stm32f4xx_nucleo_conf.h:
-../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h:
-../Drivers/BSP/Components/Common/env_sensor.h:
-../Drivers/BSP/Components/sths34pf80/sths34pf80.h:
-../Drivers/BSP/Components/sths34pf80/sths34pf80_reg.h:
 ../MEMS/Target/custom_mems_control_ex.h:
-../MEMS/Target/custom_env_sensors_ex.h:

@@ -136,24 +136,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	MX_MEMS_Process();
     /* USER CODE END WHILE */
 
   MX_MEMS_Process();
     /* USER CODE BEGIN 3 */
-
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-
-	pulseYellowLED();
-
-	if (personFlag == 1){
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-		HAL_Delay(0.001); // might be able to remove depending on time of execution of other code.
-		blinkRed();
-	} else {
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
-	}
-
   }
   /* USER CODE END 3 */
 }
@@ -492,6 +478,7 @@ void MX_TIM5_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
@@ -500,6 +487,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED_BSP_GPIO_Port, LED_BSP_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : LED_BSP_Pin */
+  GPIO_InitStruct.Pin = LED_BSP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_BSP_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -531,30 +528,6 @@ void stateIntruder(){
 	I2C_LCD_Init(MyI2C_LCD);
 	I2C_LCD_SetCursor(MyI2C_LCD, 0, 0);
 	I2C_LCD_WriteString(MyI2C_LCD, "INTRUDER ALERT");
-}
-
-
-int direction = 1;
-int brightness = 0;
-void pulseYellowLED() {
-	if (direction > 0) {
-		brightness++;
-		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1, brightness);
-	} else {
-		brightness--;
-		__HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1, brightness);
-	}
-	if ((brightness == 0) || (brightness == 1000)) {
-		direction = -direction;
-	}
-}
-
-void blinkRed() {
-	redBlink++;
-	if (redBlink > 300) {
-		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
-		  redBlink = 0;
-	  }
 }
 
 

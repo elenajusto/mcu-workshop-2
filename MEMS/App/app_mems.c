@@ -108,11 +108,7 @@ void MX_MEMS_Process(void)
   MX_PresenceDetection_Process();
 
   /* USER CODE BEGIN MEMS_Process_PostTreatment */
-  if (TObjRaw > (TAmbRaw+1000)) { // if person found, turn on red led
-  	  personFlag = 1;
-    } else {
-  	  personFlag = 0;
-    }
+
   /* USER CODE END MEMS_Process_PostTreatment */
 }
 

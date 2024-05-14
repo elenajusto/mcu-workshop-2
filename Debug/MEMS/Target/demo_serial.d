@@ -40,17 +40,9 @@ MEMS/Target/demo_serial.o: ../MEMS/Target/demo_serial.c \
  ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h \
  ../Core/Inc/main.h ../MEMS/Target/com.h ../MEMS/Target/serial_protocol.h \
  ../MEMS/Target/bsp_ip_conf.h ../MEMS/Target/custom_mems_control.h \
- ../Core/Inc/RTE_Components.h ../MEMS/Target/custom_env_sensors.h \
- ../MEMS/Target/custom_mems_conf.h ../Core/Inc/stm32f4xx_nucleo_bus.h \
- ../Core/Inc/stm32f4xx_nucleo_conf.h \
- ../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h \
- ../Drivers/BSP/Components/Common/env_sensor.h \
- ../Drivers/BSP/Components/sths34pf80/sths34pf80.h \
- ../Drivers/BSP/Components/sths34pf80/sths34pf80_reg.h \
- ../MEMS/Target/custom_mems_control_ex.h \
- ../MEMS/Target/custom_env_sensors_ex.h ../MEMS/Target/demo_serial.h \
- ../MEMS/Target/serial_cmd.h ../MEMS/Target/fw_version.h \
- ../MEMS/Target/infrared_pd_manager.h \
+ ../Core/Inc/RTE_Components.h ../MEMS/Target/custom_mems_control_ex.h \
+ ../MEMS/Target/demo_serial.h ../MEMS/Target/serial_cmd.h \
+ ../MEMS/Target/fw_version.h ../MEMS/Target/infrared_pd_manager.h \
  ../Middlewares/ST/STM32_InfraredPD_Library/Inc/infrared_pd.h \
  ../MEMS/Target/custom_mems_conf_app.h ../MEMS/Target/sensor_unicleo_id.h
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
@@ -98,16 +90,7 @@ MEMS/Target/demo_serial.o: ../MEMS/Target/demo_serial.c \
 ../MEMS/Target/bsp_ip_conf.h:
 ../MEMS/Target/custom_mems_control.h:
 ../Core/Inc/RTE_Components.h:
-../MEMS/Target/custom_env_sensors.h:
-../MEMS/Target/custom_mems_conf.h:
-../Core/Inc/stm32f4xx_nucleo_bus.h:
-../Core/Inc/stm32f4xx_nucleo_conf.h:
-../Drivers/BSP/STM32F4xx_Nucleo/stm32f4xx_nucleo_errno.h:
-../Drivers/BSP/Components/Common/env_sensor.h:
-../Drivers/BSP/Components/sths34pf80/sths34pf80.h:
-../Drivers/BSP/Components/sths34pf80/sths34pf80_reg.h:
 ../MEMS/Target/custom_mems_control_ex.h:
-../MEMS/Target/custom_env_sensors_ex.h:
 ../MEMS/Target/demo_serial.h:
 ../MEMS/Target/serial_cmd.h:
 ../MEMS/Target/fw_version.h:
