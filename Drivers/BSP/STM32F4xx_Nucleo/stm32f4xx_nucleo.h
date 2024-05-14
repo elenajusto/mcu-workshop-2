@@ -78,6 +78,23 @@
    #define USE_BSP_COM_FEATURE                  0U
 #endif
 
+/** @defgroup STM32F4XX_NUCLEO_LOW_LEVEL_LED STM32F4XX_NUCLEO LOW LEVEL LED
+ * @{
+ */
+/** Define number of LED            **/
+#define LEDn                              1U
+/**  Definition for BSP USER LED 2   **/
+#define LED2_PIN                     	  GPIO_PIN_6
+#define LED2_GPIO_PORT                    GPIOB
+#define LED2_GPIO_CLK_ENABLE()            __HAL_RCC_GPIOB_CLK_ENABLE()
+#define LED2_GPIO_CLK_DISABLE()           __HAL_RCC_GPIOB_CLK_DISABLE()
+
+#define BUS_GPIO_INSTANCE GPIO
+#define BUS_BSP_LED_GPIO_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE()
+#define BUS_BSP_LED_GPIO_PORT GPIOB
+#define BUS_BSP_LED_GPIO_CLK_DISABLE() __HAL_RCC_GPIOB_CLK_DISABLE()
+#define BUS_BSP_LED_GPIO_PIN GPIO_PIN_6
+
 /**
  * @}
  */
@@ -115,6 +132,12 @@
 #ifndef USE_COM_LOG
   #define USE_COM_LOG                           1U
 #endif
+
+typedef enum
+{
+  LED2 = 0,
+  LED_GREEN = LED2,
+}Led_TypeDef;
 
 #if (USE_BSP_COM_FEATURE > 0)
 typedef enum
@@ -207,6 +230,12 @@ extern UART_HandleTypeDef hcom_uart[COMn];
  */
 
 int32_t  BSP_GetVersion(void);
+int32_t  BSP_LED_Init(Led_TypeDef Led);
+int32_t  BSP_LED_DeInit(Led_TypeDef Led);
+int32_t  BSP_LED_On(Led_TypeDef Led);
+int32_t  BSP_LED_Off(Led_TypeDef Led);
+int32_t  BSP_LED_Toggle(Led_TypeDef Led);
+int32_t  BSP_LED_GetState(Led_TypeDef Led);
 #if (USE_BSP_COM_FEATURE > 0)
 int32_t  BSP_COM_Init(COM_TypeDef COM);
 int32_t  BSP_COM_DeInit(COM_TypeDef COM);
