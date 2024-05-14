@@ -70,6 +70,8 @@ void MX_TIM5_Init(void);
 #define RED_LED_GPIO_Port GPIOA
 #define YELLOW_LED_Pin GPIO_PIN_0
 #define YELLOW_LED_GPIO_Port GPIOB
+#define BUZZER_OUT_Pin GPIO_PIN_7
+#define BUZZER_OUT_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
